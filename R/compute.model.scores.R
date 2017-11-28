@@ -1,29 +1,44 @@
-compute.model.scores <- function(alignlogPath = "~/datasets/SALB3.OPTIMUM.001/gscore/gscore-TMscore-050.dat",
-                                 gscorePath = "~/datasets/SALB3.OPTIMUM.001/lovoalign.log"){
+compute.model.scores <- function(simName = "SALB3.BISTRIVIAL.002",
+                                 gscoreFilename = "gscore-TMscore-050.dat",
+                                 alignlogPath = paste0("~/datasets/",
+                                                       simName,
+                                                       "/lovoalign.log"),
+                                 gscorePath = paste0("~/datasets/",
+                                                     simName,
+                                                     "/gscore/", gscoreFilename)){
 
   ######
   #
-  # This script relies on logs obtained by TopoLink Software. TopoLink is open-source software.
-  # Whenever you use TopoLink software, please cite:
+  # This script relies on data obtained by G-Score and Lovoalign Software.
   #
-  # Ferrari, Allan & Martínez, Leandro & Cesar Gozzo, Fabio. (2017).
-  # TopoLink: A software to validate structural models using chemical crosslinking constraints.
-  # Nature Protocol Exchange. 10.1038/protex.2017.035.
+  # Lovoalign is open-source software. Whenever you use Lovoalign, please cite:
   #
-  # Obtain TopoLink software at http://leandro.iqm.unicamp.br/topolink/home.shtml
+  # L. Martínez, R. Andreani, J. M. Martínez
+  # Convergent algorithms for protein structural alignment.
+  # BMC Bioinformatics, 2007, 8:306.
+  #
+  # Obtain Lovoalign software at http://www.ime.unicamp.br/~martinez/lovoalign/software.html
+  #
+  # G-score is open-source software. Whenever you use G-score, please cite:
+  #
+  # L. Martínez, A. Ferrari, F. C. Gozzo,
+  # A free-energy inspired score for the evaluation of structural models. 2016.
+  #
+  # Obtain G-Score software at http://leandro.iqm.unicamp.br/gscore/download.shtml
   #
   ######
 
-  tmScoreTable <- read.table(grep(pattern = "#",
-                             x = readLines(alignlogPath),
-                             invert = TRUE))
+  tmScoreTable <- read.table(alignlogPath)
 
-  gscoreTable <- read.table(grep(pattern = "#",
-                             x = readLines(gscorePath),
-                             invert = TRUE))
+  gscoreTable <- read.table(gscorePath)
 
-  modelScores <- data.frame(TMScore = tmScoreTable[,"TM-Score"],
-                            gscore = gscoreTable[,"gscore"])
+  gscoreTable <- gscoreTable[order(gscoreTable$V3),]
 
-  return(logTableList)
+  modelScores <- data.frame(TMScore = tmScoreTable[,3],
+                            gscore = gscoreTable[,1])
+
+  rownames(modelScores) <- gscoreTable$V3
+  colnames(modelScores) <- c("TM-Score", "G-Score")
+
+  return(modelScores)
 }
