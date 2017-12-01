@@ -2,34 +2,24 @@ restriction.differential.scores <- function(type = "TM-Score",
                                             xlinkMirtTable,
                                             modelScores) {
 
-  averageTrueScore <- apply(xlinkMirtTable,
-                            2,
-                            function(x) {
-                              mean(modelScores[which(x == 1),][,type])})
+  averageTrueScore <- apply(xlinkMirtTable, 2, function(x) {
+    if (type == "TM-Score") {mean(modelScores[which(x == 1),][,type])}
+    else {1/mean(modelScores[which(x == 1),][,type])}})
 
-  deviationTrueScore <- apply(xlinkMirtTable,
-                              2,
-                              function(x) {
+  deviationTrueScore <- apply(xlinkMirtTable, 2, function(x) {
                                 sd(modelScores[which(x == 1),][,type])})
 
-  countTrueScore <- apply(xlinkMirtTable,
-                          2,
-                          function(x) {
+  countTrueScore <- apply(xlinkMirtTable, 2, function(x) {
                             length(modelScores[which(x == 1),][,type])})
 
-  averageFalseScore <- apply(xlinkMirtTable,
-                            2,
-                            function(x) {
-                              mean(modelScores[which(x == 0),][,type])})
+  averageFalseScore <- apply(xlinkMirtTable, 2, function(x) {
+                              if (type == "TM-Score") {mean(modelScores[which(x == 0),][,type])}
+                              else {1/mean(modelScores[which(x == 0),][,type])}})
 
-  deviationFalseScore <- apply(xlinkMirtTable,
-                              2,
-                              function(x) {
+  deviationFalseScore <- apply(xlinkMirtTable, 2, function(x) {
                                 sd(modelScores[which(x == 0),][,type])})
 
-  countFalseScore <- apply(xlinkMirtTable,
-                          2,
-                          function(x) {
+  countFalseScore <- apply(xlinkMirtTable, 2, function(x) {
                             length(modelScores[which(x == 0),][,type])})
 
   ## Uncomment columns as needed for Exploratory Data Analysis.
