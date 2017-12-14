@@ -1,4 +1,5 @@
-compute.model.scores <- function(simName = "SALB3.BISTRIVIAL.002",
+compute.model.scores <- function(simName = "SALB3.RSCORE.003",
+                                 type = "G-Score",
                                  gscoreFilename = "gscore-TMscore-050.dat",
                                  alignlogPath = paste0("~/datasets/",
                                                        simName,
@@ -32,13 +33,37 @@ compute.model.scores <- function(simName = "SALB3.BISTRIVIAL.002",
 
   gscoreTable <- read.table(gscorePath)
 
-  gscoreTable <- gscoreTable[order(gscoreTable$V3),]
+  gscoreTable <- gscoreTable[order(gscoreTable$V4),]
 
-  modelScores <- data.frame(TMScore = tmScoreTable[,3],
-                            gscore = gscoreTable[,1])
+  if (type == "G-Score") {
 
-  rownames(modelScores) <- gscoreTable$V3
-  colnames(modelScores) <- c("TM-Score", "G-Score")
+    modelScores <- data.frame(TMScore = tmScoreTable[,3],
+                              gscore = gscoreTable[,1])
+
+    rownames(modelScores) <- gscoreTable$V4
+    colnames(modelScores) <- c("TM-Score", "G-Score")
+
+  }
+
+  else if (type == "degree") {
+
+    modelScores <- data.frame(TMScore = tmScoreTable[,3],
+                              gscore = gscoreTable[,2])
+
+    rownames(modelScores) <- gscoreTable$V4
+    colnames(modelScores) <- c("TM-Score", "degree")
+
+  }
+
+  else if (type == "Wdegree") {
+
+    modelScores <- data.frame(TMScore = tmScoreTable[,3],
+                              gscore = gscoreTable[,3])
+
+    rownames(modelScores) <- gscoreTable$V4
+    colnames(modelScores) <- c("TM-Score", "Wdegree")
+
+  }
 
   return(modelScores)
 }

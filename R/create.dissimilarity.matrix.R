@@ -1,6 +1,20 @@
-create.dissimilarity.matrix <- function(alignlistPath,
+create.dissimilarity.matrix <- function(mode = "dissimilarity",
+                                        diagonal = 0,
+                                        alignlistPath,
                                         compactlogPath,
                                         nmodels){
+
+  #######################################
+  # This function reads a compactLog and computes its contents as a
+  # similarity matrix or a dissimilarity matrix.
+  #
+  # Dissimilarity is calculated as 1 - TMScore
+  #
+  # Similarity Matrix is used as an input to BetaK histograms
+  #
+  # Dissimilarity matrix is used as an input to ForceScheme projections.
+  #
+  #######################################
 
   logList <- readLines(alignlistPath)
 
@@ -8,24 +22,45 @@ create.dissimilarity.matrix <- function(alignlistPath,
     logList[i] <- strsplit(logList[i], "/")[[1]][length(strsplit(logList[i], "/")[[1]])]
   }
 
+  # Read COMPACTLOG
+
   similarityMatrix <- read.table(compactlogPath,
                                  skip = nmodels + 5,
                                  fill = TRUE)
 
-  dissimilarityMatrix <- similarityMatrix
-  dissimilarityMatrix[length(logList),length(logList)] <- NA
+  # Adjust COMPACTLOG matrix (dimension nmodels-1 to dimensionnmodels and upper triangular matrix)
 
-  dissimilarity.matrix[]<-t(apply(dissimilarityMatrix,1,function(x){
+  similarityMatrix[length(logList),length(logList)] <- NA
+
+  similarityMatrix[]<-t(apply(similarityMatrix,1,function(x){
     c(x[is.na(x)], x[!is.na(x)])}))
 
-  diag(dissimilarityMatrix) <- 1
-  dissimilarityMatrix <- 1 - dissimilarityMatrix
-  dissimilarityMatrix[is.na(dissimilarity.matrix)] <- 0
-  dissimilarityMatrix <- t(dissimilarityMatrix) + dissimilarityMatrix
+  similarityMatrix[is.na(similarityMatrix)] <- 0
+
+  # Naming by model list
 
   dimnames(dissimilarityMatrix)[[1]] <- logList
   dimnames(dissimilarityMatrix)[[2]] <- logList
 
-  return(dissimilarityMatrix)
+  # Hard symmetrizing matrix
+
+  similarityMatrix <- t(similarityMatrix) + similarityMatrix
+
+  # Setting diagonal value
+
+  diag(similarityMatrix) <- diagonal
+
+  ## Compute dissimilarity from similarity
+
+  dissimilarityMatrix <- 1 - similarityMatrix
+  diag(similarityMatrix) <- diagonal
+
+  # Return desired matrix mased on "MODE"
+
+  if (mode == "similarity") {
+    return(similarityMatrix)
+  } else if (mode == "dissimilarity") {
+    return(dissimilarityMatrix)
+  }
 
 }
