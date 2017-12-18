@@ -39,8 +39,8 @@ create.dissimilarity.matrix <- function(mode = "dissimilarity",
 
   # Naming by model list
 
-  dimnames(dissimilarityMatrix)[[1]] <- logList
-  dimnames(dissimilarityMatrix)[[2]] <- logList
+  dimnames(similarityMatrix)[[1]] <- logList
+  dimnames(similarityMatrix)[[2]] <- logList
 
   # Hard symmetrizing matrix
 
@@ -53,14 +53,14 @@ create.dissimilarity.matrix <- function(mode = "dissimilarity",
   ## Compute dissimilarity from similarity
 
   dissimilarityMatrix <- 1 - similarityMatrix
-  diag(similarityMatrix) <- diagonal
+  diag(dissimilarityMatrix) <- diagonal
 
   # Return desired matrix mased on "MODE"
 
   if (mode == "similarity") {
-    return(similarityMatrix)
+    return(as.matrix(similarityMatrix))
   } else if (mode == "dissimilarity") {
-    return(dissimilarityMatrix)
+    return(as.matrix(dissimilarityMatrix))
   }
 
 }
