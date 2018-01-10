@@ -1,39 +1,47 @@
-restriction.differential.scores <- function(type = "TM-Score",
+restriction.differential.scores <- function(type = "tmscore",
                                             xlinkMirtTable,
                                             modelScores) {
 
-  averageTrueScore <- apply(xlinkMirtTable, 2, function(x) {
-    if (type == "TM-Score") {mean(modelScores[which(x == 1),][,type])}
-    else {1/mean(modelScores[which(x == 1),][,type])}})
+  scoreTrue <- apply(xlinkMirtTable, 2, function(x) {
+    if (type == "tmscore") {mean(modelScores[which(x == 1),][,type])}
+    else if (type == "gscore") {mean(1/modelScores[which(x == 1),][,type])}
+    else if (type == "Wdegree") {mean(modelScores[which(x == 1),][,type])}})
 
-  deviationTrueScore <- apply(xlinkMirtTable, 2, function(x) {
+  devTrue <- apply(xlinkMirtTable, 2, function(x) {
                                 sd(modelScores[which(x == 1),][,type])})
 
-  countTrueScore <- apply(xlinkMirtTable, 2, function(x) {
-                            length(modelScores[which(x == 1),][,type])})
+  freqTrue <- apply(xlinkMirtTable, 2, function(x) {
+    length(modelScores[which(x == 1),][,type])/length(x)})
 
-  averageFalseScore <- apply(xlinkMirtTable, 2, function(x) {
-                              if (type == "TM-Score") {mean(modelScores[which(x == 0),][,type])}
-                              else {1/mean(modelScores[which(x == 0),][,type])}})
+  scoreFalse <- apply(xlinkMirtTable, 2, function(x) {
+    if (type == "tmscore") {mean(modelScores[which(x == 0),][,type])}
+    else if (type == "gscore") {mean(1/modelScores[which(x == 0),][,type])}
+    else if (type == "Wdegree") {mean(modelScores[which(x == 0),][,type])}})
 
-  deviationFalseScore <- apply(xlinkMirtTable, 2, function(x) {
-                                sd(modelScores[which(x == 0),][,type])})
+  devFalse <- apply(xlinkMirtTable, 2, function(x) {
+    sd(modelScores[which(x == 0),][,type])})
 
-  countFalseScore <- apply(xlinkMirtTable, 2, function(x) {
-                            length(modelScores[which(x == 0),][,type])})
+  freqFalse <- apply(xlinkMirtTable, 2, function(x) {
+    length(modelScores[which(x == 0),][,type])/length(x)})
 
   ## Uncomment columns as needed for Exploratory Data Analysis.
 
+  logit <- log(freqTrue/(1 - freqTrue))
+
+  rscorescale <- function(x){(x-min(x))/(max(x)-min(x))}
+
+  scaledLogit <- rscorescale(logit)
+
   differentialScores <- data.frame(
-    "trueScore" = averageTrueScore,
+    "trueScore" = scoreTrue,
     # "trueDev" = deviationTrueScore,
     # "trueCount" = countTrueScore,
-    "falseScore" = averageFalseScore,
+    "falseScore" = scoreFalse,
     # "falseDev" = deviationFalseScore,
     # "falseCount" = countFalseScore,
     # "rscore" = (averageTrueScore/averageFalseScore),
-    "adjustedRscore" = (averageTrueScore*countTrueScore)/(averageFalseScore*countFalseScore),
-    "logRscore" = log((averageTrueScore*countTrueScore)/(averageFalseScore*countFalseScore)))
+    "logscore" = logit,
+    "rscore" = scaledLogit + rscorescale(scoreTrue - scoreFalse))
 
   return(differentialScores)
 }
