@@ -1,7 +1,7 @@
 read.topolink.output <- function(mode = "observed",
-                                 simulationName = "SALB3.OPTIMUM.001",
+                                 simulationName,
                                  loglistLocation = paste0("~/datasets/",simulationName,"/loglist.txt"),
-                                 logsLocation = paste0("~/datasets/SALB3.OPTIMUM.001/topolink_",mode,"/")){
+                                 logsLocation = paste0("~/datasets/",simulationName,"/topolink_",mode,"/")){
 
   ######
   #
