@@ -1,4 +1,4 @@
-compute.model.scores <- function(simName = "SALB3.RSCORE.003",
+compute.model.scores <- function(simName,
                                  type = "G-Score",
                                  gscoreFilename = "gscore-TMscore-050.dat",
                                  alignlogPath = paste0("~/datasets/",
