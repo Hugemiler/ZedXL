@@ -1,5 +1,5 @@
 compute.model.scores <- function(simName,
-                                 type = "G-Score",
+                                 type = "gscore",
                                  gscoreFilename = "gscore-TMscore-050.dat",
                                  alignlogPath = paste0("~/datasets/",
                                                        simName,
@@ -35,7 +35,7 @@ compute.model.scores <- function(simName,
 
   gscoreTable <- gscoreTable[order(gscoreTable$V4),]
 
-  if (type == "G-Score") {
+  if (type == "gscore") {
 
     modelScores <- data.frame(TMScore = tmScoreTable[,3],
                               gscore = gscoreTable[,1])

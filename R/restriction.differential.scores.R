@@ -1,10 +1,10 @@
-restriction.differential.scores <- function(type = "tmscore",
+restriction.differential.scores <- function(type = "TM-Score",
                                             xlinkMirtTable,
                                             modelScores) {
 
   scoreTrue <- apply(xlinkMirtTable, 2, function(x) {
-    if (type == "tmscore") {mean(modelScores[which(x == 1),][,type])}
-    else if (type == "gscore") {mean(1/modelScores[which(x == 1),][,type])}
+    if (type == "TM-Score") {mean(modelScores[which(x == 1),][,type])}
+    else if (type == "G-Score") {mean(1/modelScores[which(x == 1),][,type])}
     else if (type == "Wdegree") {mean(modelScores[which(x == 1),][,type])}})
 
   devTrue <- apply(xlinkMirtTable, 2, function(x) {
@@ -14,8 +14,8 @@ restriction.differential.scores <- function(type = "tmscore",
     length(modelScores[which(x == 1),][,type])/length(x)})
 
   scoreFalse <- apply(xlinkMirtTable, 2, function(x) {
-    if (type == "tmscore") {mean(modelScores[which(x == 0),][,type])}
-    else if (type == "gscore") {mean(1/modelScores[which(x == 0),][,type])}
+    if (type == "TM-Score") {mean(modelScores[which(x == 0),][,type])}
+    else if (type == "G-Score") {mean(1/modelScores[which(x == 0),][,type])}
     else if (type == "Wdegree") {mean(modelScores[which(x == 0),][,type])}})
 
   devFalse <- apply(xlinkMirtTable, 2, function(x) {
