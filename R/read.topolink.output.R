@@ -24,13 +24,10 @@ read.topolink.output <- function(mode = "observed",
     logPath <- paste0(logsLocation, logList[i])
     logTableList[[logList[i]]] <- readLines(logPath)
     filterVector <- grep(pattern = 'LINK:', x = logTableList[[logList[i]]])
+    logTableList[[logList[i]]] <- logTableList[[logList[i]]][filterVector]
 
-    logTableList[[logList[i]]] <- read.table(file = logPath,
-                                             header = FALSE,
-                                             skip = (min(filterVector)-1),
-                                             nrows = length(filterVector))
-
-    # logTableList[[logList[i]]] <- as.data.frame(logTableList[[logList[i]]][filterVector])
+    logTableList[[logList[i]]] <- read.table(text = logTableList[[logList[i]]],
+                                             header = FALSE)
 
     }
   names(logTableList) = logList
