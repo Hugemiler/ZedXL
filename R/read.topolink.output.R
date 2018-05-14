@@ -1,7 +1,6 @@
 read.topolink.output <- function(mode = "observed",
-                                 simulationName,
-                                 loglistLocation = paste0("~/datasets/",simulationName,"/loglist.txt"),
-                                 logsLocation = paste0("~/datasets/",simulationName,"/topolink_",mode,"/")){
+                                 loglistLocation,
+                                 topolinkLogsDirectory){
 
   ######
   #
@@ -19,9 +18,11 @@ read.topolink.output <- function(mode = "observed",
   logList <- readLines(loglistLocation)
   logTableList <- list()
 
+  progressBar <- txtProgressBar(min = 0, max = length(logList), style = 3)
+
   for (i in 1:length(logList)){
 
-    logPath <- paste0(logsLocation, logList[i])
+    logPath <- paste0(topolinkLogsDirectory, logList[i])
     logTableList[[logList[i]]] <- readLines(logPath)
     filterVector <- grep(pattern = 'LINK:', x = logTableList[[logList[i]]])
     logTableList[[logList[i]]] <- logTableList[[logList[i]]][filterVector]
@@ -29,7 +30,10 @@ read.topolink.output <- function(mode = "observed",
     logTableList[[logList[i]]] <- read.table(text = logTableList[[logList[i]]],
                                              header = FALSE)
 
+    setTxtProgressBar(progressBar, i)
+
     }
   names(logTableList) = logList
   return(logTableList)
 }
+

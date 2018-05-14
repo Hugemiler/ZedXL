@@ -1,12 +1,6 @@
-compute.model.scores <- function(simName,
-                                 type = "gscore",
-                                 gscoreFilename = "gscore-TMscore-050.dat",
-                                 alignlogPath = paste0("~/datasets/",
-                                                       simName,
-                                                       "/lovoalign.log"),
-                                 gscorePath = paste0("~/datasets/",
-                                                     simName,
-                                                     "/gscore/", gscoreFilename)){
+compute.model.scores <- function(type = "gscore",
+                                 gscoreLogPath,
+                                 lovoalignLogPath){
 
   ######
   #
@@ -29,9 +23,9 @@ compute.model.scores <- function(simName,
   #
   ######
 
-  tmScoreTable <- read.table(alignlogPath)
+  tmScoreTable <- read.table(lovoalignLogPath)
 
-  gscoreTable <- read.table(gscorePath)
+  gscoreTable <- read.table(gscoreLogPath)
 
   gscoreTable <- gscoreTable[order(gscoreTable$V4),]
 

@@ -1,4 +1,5 @@
 create.xlink.mirttable <- function(optimizedLogs){
+  progressBar <- txtProgressBar(min = 0, max = length(optimizedLogs), style = 3)
   xlink.mirttable <- data.frame()
   for (i in 1:length(optimizedLogs)){
     grep.line <- optimizedLogs[[i]]$Result
@@ -19,6 +20,8 @@ create.xlink.mirttable <- function(optimizedLogs){
     grep.line <- as.numeric(grep.line)
 
     xlink.mirttable <- rbind(xlink.mirttable, grep.line)
+
+    setTxtProgressBar(progressBar, i)
   }
 
   colnames(xlink.mirttable) <- optimizedLogs[[1]]$Restriction

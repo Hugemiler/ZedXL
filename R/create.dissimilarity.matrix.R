@@ -39,8 +39,8 @@ create.dissimilarity.matrix <- function(mode = "dissimilarity",
 
   # Naming by model list
 
-  dimnames(similarityMatrix)[[1]] <- logList
-  dimnames(similarityMatrix)[[2]] <- logList
+  dimnames(similarityMatrix)[[1]] <- gsub(".log", "", logList)
+  dimnames(similarityMatrix)[[2]] <- gsub(".log", "", logList)
 
   # Hard symmetrizing matrix
 
