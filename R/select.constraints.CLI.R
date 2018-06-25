@@ -12,7 +12,6 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   # Initial Package Load and Environment Set
 
   ## descriptive analysis
-  require(ltm)
   require(ZedXL)
 
   ## Set random seed
@@ -24,7 +23,9 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   modelScores <- compute.model.scores(type = "gscore",
                                       gscoreLogPath,
-                                      lovoalignLogPath)
+                                      lovoalignLogPath,
+                                      proq3listLocation,
+                                      computeproq3)
 
   ## Computing XlinkMirtTable from topolink logs
 
@@ -65,7 +66,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   ### Classical Analysis
 
-  optimumDescript <- descript(optimumXlinkMirttable)
+  optimumDescript <- ltm::descript(optimumXlinkMirttable)
 
   ## Computation of restrictionScores
 
@@ -84,20 +85,76 @@ select.constraints.CLI <- function(inputfile, outputfile) {
                                                               modelScores)$rscore
 
   restrictionScores$biscore <- -apply(optimumXlinkMirttable, 2, function(x) {
-    biserial.cor(optimumSimilarityTable[which(modelScores$davisconsensus == max(modelScores$davisconsensus)), ], x)})
+    ltm::biserial.cor(optimumSimilarityTable[which(modelScores$davisconsensus == max(modelScores$davisconsensus)), ], x)})
 
   restrictionScores$biscore_best <- -apply(optimumXlinkMirttable, 2, function(x) {
-    biserial.cor(optimumSimilarityTable[which(modelScores$`TM-Score` == max(modelScores$`TM-Score`)), ], x)})
+    ltm::biserial.cor(optimumSimilarityTable[which(modelScores$`TM-Score` == max(modelScores$`TM-Score`)), ], x)})
 
   restrictionScores$biscore_native <- -apply(optimumXlinkMirttable, 2, function(x) {
-    biserial.cor(modelScores$`TM-Score`, x)})
+    ltm::biserial.cor(modelScores$`TM-Score`, x)})
 
   restrictionScores$biscore_regression <- -apply(optimumXlinkMirttable, 2, function(x) {
-    biserial.cor(optimumSimilarityTable[
+    ltm::biserial.cor(optimumSimilarityTable[
       which(colnames(optimumSimilarityTable) == rownames(regressionTable)[
         which(regressionTable$regressionScore == max(regressionTable$regressionScore))]), ], x)})
 
   restrictionScores <- attribute.cur.and.rec(restrictionScores)
+
+  # Correlations and Charts
+
+  ## Index Assignment
+
+  maxIndex <- which(modelScores$`TM-Score` == max(modelScores$`TM-Score`))
+  daviesIndex <- which(modelScores$`TM-Score` ==
+                         modelScores$`TM-Score`[which(modelScores$davisconsensus == max(modelScores$davisconsensus))])
+  regressionIndex <- which(rownames(modelScores) == rownames(regressionTable)[which(regressionTable$regressionScore == max(regressionTable$regressionScore))])
+  proq3Index <- which(modelScores$ProQ3D == max(modelScores$ProQ3D))
+
+  # ## Correlation plots and linear regressions
+  #
+  # require(ggplot2)
+  #
+  # ### Max TM-Score
+  # summary(lm(modelScores$`TM-Score`[-maxIndex] ~ optimumSimilarityTable[maxIndex, ][-maxIndex]))
+  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`[-maxIndex],
+  #                   ModelTMScore = optimumSimilarityTable[maxIndex, ][-maxIndex]), aes(x=NativeTMScore, y=ModelTMScore)) +
+  #   geom_point(size = 2) + geom_smooth(method="lm")
+  #
+  # ### Max Davies Score
+  # summary(lm(modelScores$`TM-Score`[-daviesIndex] ~ optimumSimilarityTable[daviesIndex, ][-daviesIndex]))
+  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`[-daviesIndex],
+  #                   ModelTMScore = optimumSimilarityTable[daviesIndex, ][-daviesIndex]), aes(x=NativeTMScore, y=ModelTMScore)) +
+  #   geom_point(size = 2) + geom_smooth(method="lm")
+  #
+  # ### Max Regression Score
+  # summary(lm(modelScores$`TM-Score`[-regressionIndex] ~ optimumSimilarityTable[regressionIndex, ][-regressionIndex]))
+  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`[-regressionIndex],
+  #                   ModelTMScore = optimumSimilarityTable[regressionIndex, ][-regressionIndex]), aes(x=NativeTMScore, y=ModelTMScore)) +
+  #   geom_point(size = 2) + geom_smooth(method="lm")
+  #
+  # ### Max Proq3D Score
+  # summary(lm(modelScores$`TM-Score`[-proq3Index] ~ optimumSimilarityTable[proq3Index, ][-proq3Index]))
+  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`[-proq3Index],
+  #                   ModelTMScore = optimumSimilarityTable[proq3Index, ][-proq3Index]), aes(x=NativeTMScore, y=ModelTMScore)) +
+  #   geom_point(size = 2) + geom_smooth(method="lm")
+  #
+  # ## ProQ3 Plots
+  #
+  # ### ProQ2D
+  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQ2D = modelScores$ProQ2D), aes(x=NativeTMScore, y=ProQ2D)) +
+  #   geom_point(size = 2)
+  #
+  # ### ProQ3D
+  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQ3D = modelScores$ProQ3D), aes(x=NativeTMScore, y=ProQ3D)) +
+  #   geom_point(size = 2)
+  #
+  # ### ProQRosetta Centroid
+  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQRosCenD = modelScores$ProQRosCenD), aes(x=NativeTMScore, y=ProQRosCenD)) +
+  #   geom_point(size = 2)
+  #
+  # ### ProQRosetts Full-Atom
+  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQRosFAD = modelScores$ProQRosFAD), aes(x=NativeTMScore, y=ProQRosFAD)) +
+  #   geom_point(size = 2)
 
   # Protocol Termination
 

@@ -1,6 +1,8 @@
 compute.model.scores <- function(type = "gscore",
                                  gscoreLogPath,
-                                 lovoalignLogPath){
+                                 lovoalignLogPath,
+                                 proq3listLocation,
+                                 computeproq3 = "FALSE"){
 
   ######
   #
@@ -56,6 +58,24 @@ compute.model.scores <- function(type = "gscore",
 
     rownames(modelScores) <- gscoreTable$V4
     colnames(modelScores) <- c("TM-Score", "Wdegree")
+
+  }
+
+  ## Computing ProQ3 Scores
+
+  if (computeproq3 == "TRUE") {
+
+    proq3list <- readLines(proq3listLocation)
+    modelNames <- do.call(rbind, strsplit(proq3list, split = "/"))
+    modelNames <- as.character(modelNames[, ncol(modelNames)])
+    proq3list <- gsub(".pdb", ".pdb.proq3d.sscore.global", proq3list,fixed = T)
+    proq3Table <- do.call(rbind, lapply(proq3list, function(x) {
+      read.table(x, header = T)}))
+    rownames(proq3Table) <- modelNames
+
+    ## Appending all modelScores computed
+
+    modelScores <- cbind(modelScores, proq3Table)
 
   }
 
