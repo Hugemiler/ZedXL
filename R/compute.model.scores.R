@@ -2,7 +2,7 @@ compute.model.scores <- function(type = "gscore",
                                  gscoreLogPath,
                                  lovoalignLogPath,
                                  proq3listLocation,
-                                 computeproq3 = "FALSE"){
+                                 computeproq3 = F){
 
   ######
   #
@@ -63,7 +63,7 @@ compute.model.scores <- function(type = "gscore",
 
   ## Computing ProQ3 Scores
 
-  if (computeproq3 == "TRUE") {
+  if (computeproq3 == T) {
 
     proq3list <- readLines(proq3listLocation)
     modelNames <- do.call(rbind, strsplit(proq3list, split = "/"))
