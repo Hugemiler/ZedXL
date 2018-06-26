@@ -73,9 +73,17 @@ compute.model.scores <- function(type = "gscore",
       read.table(x, header = T)}))
     rownames(proq3Table) <- modelNames
 
+    ## Compute tmscore
+
+    proq3list <- gsub("sscore", "tmscore", proq3list,fixed = T)
+    tmscoreTable <- do.call(rbind, lapply(proq3list, function(x) {
+      read.table(x, header = T)}))
+    rownames(tmscoreTable) <- modelNames
+
     ## Appending all modelScores computed
 
-    modelScores <- cbind(modelScores, proq3Table)
+    modelScores <- cbind(modelScores, proq3Table, tmscoreTable)
+    # modelScores <- cbind(modelScores, proq3Table)
 
   }
 

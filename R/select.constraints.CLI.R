@@ -98,6 +98,12 @@ select.constraints.CLI <- function(inputfile, outputfile) {
       which(colnames(optimumSimilarityTable) == rownames(regressionTable)[
         which(regressionTable$regressionScore == max(regressionTable$regressionScore))]), ], x)})
 
+  restrictionScores$biscore_proq3 <- -apply(optimumXlinkMirttable, 2, function(x) {
+    ltm::biserial.cor(optimumSimilarityTable[which(modelScores$ProQ3D == max(modelScores$ProQ3D)), ], x)})
+
+  restrictionScores$biscore_proq3.TM <- -apply(optimumXlinkMirttable, 2, function(x) {
+    ltm::biserial.cor(optimumSimilarityTable[which(modelScores$ProQ3D.TM == max(modelScores$ProQ3D.TM)), ], x)})
+
   restrictionScores <- attribute.cur.and.rec(restrictionScores)
 
   # Correlations and Charts
@@ -109,6 +115,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
                          modelScores$`TM-Score`[which(modelScores$davisconsensus == max(modelScores$davisconsensus))])
   regressionIndex <- which(rownames(modelScores) == rownames(regressionTable)[which(regressionTable$regressionScore == max(regressionTable$regressionScore))])
   proq3Index <- which(modelScores$ProQ3D == max(modelScores$ProQ3D))
+  proq3_TMIndex <- which(modelScores$ProQ3D.TM == max(modelScores$ProQ3D.TM))
 
   # ## Correlation plots and linear regressions
   #
@@ -138,6 +145,12 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   #                   ModelTMScore = optimumSimilarityTable[proq3Index, ][-proq3Index]), aes(x=NativeTMScore, y=ModelTMScore)) +
   #   geom_point(size = 2) + geom_smooth(method="lm")
   #
+  # ### Max Proq3D.TM-Score
+  # summary(lm(modelScores$`TM-Score`[-proq3_TMIndex] ~ optimumSimilarityTable[proq3_TMIndex, ][-proq3_TMIndex]))
+  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`[-proq3_TMIndex],
+  #                   ModelTMScore = optimumSimilarityTable[proq3_TMIndex, ][-proq3_TMIndex]), aes(x=NativeTMScore, y=ModelTMScore)) +
+  #   geom_point(size = 2) + geom_smooth(method="lm")
+  #
   # ## ProQ3 Plots
   #
   # ### ProQ2D
@@ -155,6 +168,14 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   # ### ProQRosetts Full-Atom
   # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQRosFAD = modelScores$ProQRosFAD), aes(x=NativeTMScore, y=ProQRosFAD)) +
   #   geom_point(size = 2)
+  #
+  # ### ProQ2TM
+  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQ2D.TM = modelScores$ProQ2D.TM), aes(x=NativeTMScore, y=ProQ2D.TM)) +
+  #   geom_point(size = 2)
+  #
+  # ### ProQ3TM
+  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQ3D.TM = modelScores$ProQ3D.TM), aes(x=NativeTMScore, y=ProQ3D.TM)) +
+  #   geom_point(size = 2)
 
   # Protocol Termination
 
@@ -166,16 +187,19 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   biscore_nativelist <- rownames(restrictionScores)[order(-restrictionScores$biscore_native)][1:nconst]
   biscore_bestlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_best)][1:nconst]
   biscore_regressionlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_regression)][1:nconst]
+  biscore_proq3list <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3.TM)][1:nconst]
+  biscore_proq3_TMlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3)][1:nconst]
 
   ## Writing the constraint files
 
-  appendname <- unlist(strsplit(simulationName, split = "[.]"))
-  appendname <- as.numeric(appendname[length(appendname)])
+  # Deprecated
+  # appendname <- unlist(strsplit(simulationName, split = "[.]"))
+  # appendname <- as.numeric(appendname[length(appendname)])
 
   if ("freq" %in% indicator) {
 
     write.table(x = write.rosetta.constraints(freqlist),
-                file = paste0(outputfile, (appendname+1)),
+                file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
                 row.names = FALSE)
@@ -185,7 +209,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   if ("bis" %in% indicator) {
 
     write.table(x = write.rosetta.constraints(bislist),
-                file = paste0(outputfile, (appendname+1)),
+                file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
                 row.names = FALSE)
@@ -195,7 +219,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   if ("rscore" %in% indicator) {
 
     write.table(x = write.rosetta.constraints(rscorelist),
-                file = paste0(outputfile, (appendname+1)),
+                file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
                 row.names = FALSE)
@@ -205,7 +229,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   if ("biscore" %in% indicator) {
 
     write.table(x = write.rosetta.constraints(biscorelist),
-                file = paste0(outputfile, (appendname+1)),
+                file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
                 row.names = FALSE)
@@ -214,7 +238,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   if ("biscore_native" %in% indicator) {
 
     write.table(x = write.rosetta.constraints(biscore_nativelist),
-                file = paste0(outputfile, (appendname+1)),
+                file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
                 row.names = FALSE)
@@ -223,7 +247,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   if ("biscore_best" %in% indicator) {
 
     write.table(x = write.rosetta.constraints(biscore_bestlist),
-                file = paste0(outputfile, (appendname+1)),
+                file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
                 row.names = FALSE)
@@ -232,7 +256,25 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   if ("biscore_regression" %in% indicator) {
 
     write.table(x = write.rosetta.constraints(biscore_regressionlist),
-                file = paste0(outputfile, (appendname+1)),
+                file = outputfile,
+                quote = FALSE,
+                col.names = FALSE,
+                row.names = FALSE)
+  }
+
+  if ("biscore_proq3" %in% indicator) {
+
+    write.table(x = write.rosetta.constraints(biscore_proq3list),
+                file = outputfile,
+                quote = FALSE,
+                col.names = FALSE,
+                row.names = FALSE)
+  }
+
+  if ("biscore_proq3.TM" %in% indicator) {
+
+    write.table(x = write.rosetta.constraints(biscore_proq3_TMlist),
+                file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
                 row.names = FALSE)
