@@ -20,6 +20,10 @@ create.inputfile <- function(modelingDirectory, nconst, computeproq3, indicator)
 
   inputFileBody[10] <- paste0('proq3listLocation = \'', modelingDirectory, '/proq3list.txt\'')
 
+  inputFileBody[11] <- paste0('cryslistLocation = \'', modelingDirectory, '/utility/cryslist.txt\'')
+  inputFileBody[12] <- paste0('optlistLocation = \'', modelingDirectory, '/utility/optlist.txt\'')
+  inputFileBody[12] <- paste0('distanceTableLocation = \'', modelingDirectory, '/utility/distance_table.log\'')
+
   return(inputFileBody)
 
 }
@@ -27,5 +31,5 @@ create.inputfile <- function(modelingDirectory, nconst, computeproq3, indicator)
 write(create.inputfile(modelingDirectory = args[1],
                        nconst = args[2],
                        computeproq3 = args[3],
-                       indicator =args[4]),
+                       indicator = args[4]),
       file = args[5])

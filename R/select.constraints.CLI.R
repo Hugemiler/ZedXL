@@ -107,7 +107,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   restrictionScores$biscore_proq3.TM <- -apply(optimumXlinkMirttable, 2, function(x) {
     ltm::biserial.cor(optimumSimilarityTable[which(modelScores$ProQ3D.TM == max(modelScores$ProQ3D.TM)), ], x)})
 
-  restrictionScores <- attribute.cur.and.rec(restrictionScores)
+  restrictionScores <- attribute.cur.and.rec(restrictionScores, cryslistLocation, optListLocation)
 
   # Correlations and Charts
 
@@ -201,7 +201,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   if ("freq" %in% indicator) {
 
-    write.table(x = write.rosetta.constraints(freqlist),
+    write.table(x = write.rosetta.constraints(freqlist, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -211,7 +211,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   if ("bestcst" %in% indicator) {
 
-    write.table(x = write.rosetta.constraints(bestcstlist),
+    write.table(x = write.rosetta.constraints(bestcstlist, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -220,7 +220,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   if ("bis" %in% indicator) {
 
-    write.table(x = write.rosetta.constraints(bislist),
+    write.table(x = write.rosetta.constraints(bislist, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -230,7 +230,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   if ("rscore" %in% indicator) {
 
-    write.table(x = write.rosetta.constraints(rscorelist),
+    write.table(x = write.rosetta.constraints(rscorelist, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -240,7 +240,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   if ("biscore" %in% indicator) {
 
-    write.table(x = write.rosetta.constraints(biscorelist),
+    write.table(x = write.rosetta.constraints(biscorelist, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -249,7 +249,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   if ("biscore_native" %in% indicator) {
 
-    write.table(x = write.rosetta.constraints(biscore_nativelist),
+    write.table(x = write.rosetta.constraints(biscore_nativelist, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -258,7 +258,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   if ("biscore_best" %in% indicator) {
 
-    write.table(x = write.rosetta.constraints(biscore_bestlist),
+    write.table(x = write.rosetta.constraints(biscore_bestlist, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -267,7 +267,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   if ("biscore_regression" %in% indicator) {
 
-    write.table(x = write.rosetta.constraints(biscore_regressionlist),
+    write.table(x = write.rosetta.constraints(biscore_regressionlist, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -276,7 +276,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   if ("biscore_proq3" %in% indicator) {
 
-    write.table(x = write.rosetta.constraints(biscore_proq3list),
+    write.table(x = write.rosetta.constraints(biscore_proq3list, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -285,7 +285,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   if ("biscore_proq3.TM" %in% indicator) {
 
-    write.table(x = write.rosetta.constraints(biscore_proq3_TMlist),
+    write.table(x = write.rosetta.constraints(biscore_proq3_TMlist, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,

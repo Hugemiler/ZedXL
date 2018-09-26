@@ -1,5 +1,5 @@
 write.rosetta.constraints <- function(restrictionVector,
-                                      table.location = "~/datasets/distance_table.log"){
+                                      table.location){
 
   distanceTable <- read.table(table.location)
 
