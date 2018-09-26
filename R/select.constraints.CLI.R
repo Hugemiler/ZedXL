@@ -39,6 +39,9 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   freqlist <- colnames(optimumXlinkMirttable)[order(-colSums(optimumXlinkMirttable))][1:nconst]
 
+  bestcstcol <- optimumXlinkMirttable[which(modelScores$`TM-Score` == max(modelScores$`TM-Score`)), ]
+  bestcstlist <- colnames(bestcstcol)[bestcstcol == 1]
+
   ## Computing optimumSimilarityTable from nxn alignments
 
   optimumSimilarityTable <- create.dissimilarity.matrix(mode = "similarity",
@@ -53,9 +56,9 @@ select.constraints.CLI <- function(inputfile, outputfile) {
                                                   models = rownames(optimumSimilarityTable),
                                                   similarityTable = optimumSimilarityTable)
 
-  ## Calculating RegressionScore
+  ## Calculating RegressionScore ###DEPRECATED
 
-  regressionTable <- modelScores[order(-modelScores[, 'davisconsensus']), ][1:100, ]
+  regressionTable <- modelScores[order(-modelScores[, 'davisconsensus']), ][1:10, ]
 
   regressionTable$regressionScore <- regression.degree(regressionTable,
                                                        optimumSimilarityTable)
@@ -187,8 +190,8 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   biscore_nativelist <- rownames(restrictionScores)[order(-restrictionScores$biscore_native)][1:nconst]
   biscore_bestlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_best)][1:nconst]
   biscore_regressionlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_regression)][1:nconst]
-  biscore_proq3list <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3.TM)][1:nconst]
-  biscore_proq3_TMlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3)][1:nconst]
+  biscore_proq3list <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3)][1:nconst]
+  biscore_proq3_TMlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3.TM)][1:nconst]
 
   ## Writing the constraint files
 
@@ -204,6 +207,15 @@ select.constraints.CLI <- function(inputfile, outputfile) {
                 col.names = FALSE,
                 row.names = FALSE)
 
+  }
+
+  if ("bestcst" %in% indicator) {
+
+    write.table(x = write.rosetta.constraints(bestcstlist),
+                file = outputfile,
+                quote = FALSE,
+                col.names = FALSE,
+                row.names = FALSE)
   }
 
   if ("bis" %in% indicator) {
