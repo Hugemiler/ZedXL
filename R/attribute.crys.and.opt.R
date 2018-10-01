@@ -5,7 +5,7 @@ attribute.crys.and.opt <- function(restrictionScores,
   restriction.list <- rownames(restrictionScores)
 
   #CRYSTALLOGRAPHIC list
-  crystallographic.list <- readLines(cryslistlocation)
+  crystallographic.list <- readLines(cryslistLocation)
   crystallographyc.factor <- restriction.list %in% crystallographic.list
   restrictionScores$crys <- as.logical(crystallographyc.factor)
 

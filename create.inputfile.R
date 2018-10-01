@@ -22,7 +22,7 @@ create.inputfile <- function(modelingDirectory, nconst, computeproq3, indicator)
 
   inputFileBody[11] <- paste0('cryslistLocation = \'', modelingDirectory, '/utility/cryslist.txt\'')
   inputFileBody[12] <- paste0('optlistLocation = \'', modelingDirectory, '/utility/optlist.txt\'')
-  inputFileBody[12] <- paste0('distanceTableLocation = \'', modelingDirectory, '/utility/distance_table.log\'')
+  inputFileBody[13] <- paste0('distanceTableLocation = \'', modelingDirectory, '/utility/distance_table.log\'')
 
   return(inputFileBody)
 

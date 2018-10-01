@@ -107,7 +107,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   restrictionScores$biscore_proq3.TM <- -apply(optimumXlinkMirttable, 2, function(x) {
     ltm::biserial.cor(optimumSimilarityTable[which(modelScores$ProQ3D.TM == max(modelScores$ProQ3D.TM)), ], x)})
 
-  restrictionScores <- attribute.cur.and.rec(restrictionScores, cryslistLocation, optListLocation)
+  restrictionScores <- attribute.crys.and.opt(restrictionScores, cryslistLocation, optlistLocation)
 
   # Correlations and Charts
 
