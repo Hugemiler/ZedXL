@@ -56,13 +56,6 @@ select.constraints.CLI <- function(inputfile, outputfile) {
                                                   models = rownames(optimumSimilarityTable),
                                                   similarityTable = optimumSimilarityTable)
 
-  ## Calculating RegressionScore ###DEPRECATED
-
-  regressionTable <- modelScores[order(-modelScores[, 'davisconsensus']), ][1:10, ]
-
-  regressionTable$regressionScore <- regression.degree(regressionTable,
-                                                       optimumSimilarityTable)
-
   ## Digesting the optimumXlinkMirttable
 
   optimumXlinkMirttable <- digest.xlink.mirttable(optimumXlinkMirttable)
@@ -96,16 +89,15 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   restrictionScores$biscore_native <- -apply(optimumXlinkMirttable, 2, function(x) {
     ltm::biserial.cor(modelScores$`TM-Score`, x)})
 
-  restrictionScores$biscore_regression <- -apply(optimumXlinkMirttable, 2, function(x) {
-    ltm::biserial.cor(optimumSimilarityTable[
-      which(colnames(optimumSimilarityTable) == rownames(regressionTable)[
-        which(regressionTable$regressionScore == max(regressionTable$regressionScore))]), ], x)})
+  if(computeproq3 == T) {
 
-  restrictionScores$biscore_proq3 <- -apply(optimumXlinkMirttable, 2, function(x) {
-    ltm::biserial.cor(optimumSimilarityTable[which(modelScores$ProQ3D == max(modelScores$ProQ3D)), ], x)})
+    restrictionScores$biscore_proq3 <- -apply(optimumXlinkMirttable, 2, function(x) {
+      ltm::biserial.cor(optimumSimilarityTable[which(modelScores$ProQ3D == max(modelScores$ProQ3D)), ], x)})
 
-  restrictionScores$biscore_proq3.TM <- -apply(optimumXlinkMirttable, 2, function(x) {
-    ltm::biserial.cor(optimumSimilarityTable[which(modelScores$ProQ3D.TM == max(modelScores$ProQ3D.TM)), ], x)})
+    restrictionScores$biscore_proq3.TM <- -apply(optimumXlinkMirttable, 2, function(x) {
+      ltm::biserial.cor(optimumSimilarityTable[which(modelScores$ProQ3D.TM == max(modelScores$ProQ3D.TM)), ], x)})
+
+  }
 
   restrictionScores <- attribute.crys.and.opt(restrictionScores, cryslistLocation, optlistLocation)
 
@@ -116,70 +108,11 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   maxIndex <- which(modelScores$`TM-Score` == max(modelScores$`TM-Score`))
   daviesIndex <- which(modelScores$`TM-Score` ==
                          modelScores$`TM-Score`[which(modelScores$davisconsensus == max(modelScores$davisconsensus))])
-  regressionIndex <- which(rownames(modelScores) == rownames(regressionTable)[which(regressionTable$regressionScore == max(regressionTable$regressionScore))])
-  proq3Index <- which(modelScores$ProQ3D == max(modelScores$ProQ3D))
-  proq3_TMIndex <- which(modelScores$ProQ3D.TM == max(modelScores$ProQ3D.TM))
 
-  # ## Correlation plots and linear regressions
-  #
-  # require(ggplot2)
-  #
-  # ### Max TM-Score
-  # summary(lm(modelScores$`TM-Score`[-maxIndex] ~ optimumSimilarityTable[maxIndex, ][-maxIndex]))
-  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`[-maxIndex],
-  #                   ModelTMScore = optimumSimilarityTable[maxIndex, ][-maxIndex]), aes(x=NativeTMScore, y=ModelTMScore)) +
-  #   geom_point(size = 2) + geom_smooth(method="lm")
-  #
-  # ### Max Davies Score
-  # summary(lm(modelScores$`TM-Score`[-daviesIndex] ~ optimumSimilarityTable[daviesIndex, ][-daviesIndex]))
-  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`[-daviesIndex],
-  #                   ModelTMScore = optimumSimilarityTable[daviesIndex, ][-daviesIndex]), aes(x=NativeTMScore, y=ModelTMScore)) +
-  #   geom_point(size = 2) + geom_smooth(method="lm")
-  #
-  # ### Max Regression Score
-  # summary(lm(modelScores$`TM-Score`[-regressionIndex] ~ optimumSimilarityTable[regressionIndex, ][-regressionIndex]))
-  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`[-regressionIndex],
-  #                   ModelTMScore = optimumSimilarityTable[regressionIndex, ][-regressionIndex]), aes(x=NativeTMScore, y=ModelTMScore)) +
-  #   geom_point(size = 2) + geom_smooth(method="lm")
-  #
-  # ### Max Proq3D Score
-  # summary(lm(modelScores$`TM-Score`[-proq3Index] ~ optimumSimilarityTable[proq3Index, ][-proq3Index]))
-  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`[-proq3Index],
-  #                   ModelTMScore = optimumSimilarityTable[proq3Index, ][-proq3Index]), aes(x=NativeTMScore, y=ModelTMScore)) +
-  #   geom_point(size = 2) + geom_smooth(method="lm")
-  #
-  # ### Max Proq3D.TM-Score
-  # summary(lm(modelScores$`TM-Score`[-proq3_TMIndex] ~ optimumSimilarityTable[proq3_TMIndex, ][-proq3_TMIndex]))
-  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`[-proq3_TMIndex],
-  #                   ModelTMScore = optimumSimilarityTable[proq3_TMIndex, ][-proq3_TMIndex]), aes(x=NativeTMScore, y=ModelTMScore)) +
-  #   geom_point(size = 2) + geom_smooth(method="lm")
-  #
-  # ## ProQ3 Plots
-  #
-  # ### ProQ2D
-  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQ2D = modelScores$ProQ2D), aes(x=NativeTMScore, y=ProQ2D)) +
-  #   geom_point(size = 2)
-  #
-  # ### ProQ3D
-  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQ3D = modelScores$ProQ3D), aes(x=NativeTMScore, y=ProQ3D)) +
-  #   geom_point(size = 2)
-  #
-  # ### ProQRosetta Centroid
-  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQRosCenD = modelScores$ProQRosCenD), aes(x=NativeTMScore, y=ProQRosCenD)) +
-  #   geom_point(size = 2)
-  #
-  # ### ProQRosetts Full-Atom
-  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQRosFAD = modelScores$ProQRosFAD), aes(x=NativeTMScore, y=ProQRosFAD)) +
-  #   geom_point(size = 2)
-  #
-  # ### ProQ2TM
-  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQ2D.TM = modelScores$ProQ2D.TM), aes(x=NativeTMScore, y=ProQ2D.TM)) +
-  #   geom_point(size = 2)
-  #
-  # ### ProQ3TM
-  # ggplot(data.frame(NativeTMScore = modelScores$`TM-Score`, ProQ3D.TM = modelScores$ProQ3D.TM), aes(x=NativeTMScore, y=ProQ3D.TM)) +
-  #   geom_point(size = 2)
-
+  if(computeproq3 == T) {
+    proq3Index <- which(modelScores$ProQ3D == max(modelScores$ProQ3D))
+    proq3_TMIndex <- which(modelScores$ProQ3D.TM == max(modelScores$ProQ3D.TM))
+  }
   # Protocol Termination
 
   ## Building the constraint lists
@@ -189,15 +122,12 @@ select.constraints.CLI <- function(inputfile, outputfile) {
   biscorelist <- rownames(restrictionScores)[order(-restrictionScores$biscore)][1:nconst]
   biscore_nativelist <- rownames(restrictionScores)[order(-restrictionScores$biscore_native)][1:nconst]
   biscore_bestlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_best)][1:nconst]
-  biscore_regressionlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_regression)][1:nconst]
-  biscore_proq3list <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3)][1:nconst]
-  biscore_proq3_TMlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3.TM)][1:nconst]
+  if(computeproq3 == T) {
+    biscore_proq3list <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3)][1:nconst]
+    biscore_proq3_TMlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3.TM)][1:nconst]
+  }
 
   ## Writing the constraint files
-
-  # Deprecated
-  # appendname <- unlist(strsplit(simulationName, split = "[.]"))
-  # appendname <- as.numeric(appendname[length(appendname)])
 
   if ("freq" %in% indicator) {
 
