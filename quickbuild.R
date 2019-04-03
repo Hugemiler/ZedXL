@@ -1,33 +1,13 @@
-select.constraints.CLI <- function(inputfile, outputfile) {
+# quickbuild
 
-  source(inputfile)
-
-  ###############
-  # Script for the command-line selection methodology
-  # Feb 2019
-  #
-  # Guilherme Fahur Bottino
-  ###############
-
-  # Initial Package Load and Environment Set
-
-  ## descriptive analysis
   require(ZedXL)
-
-  ## Set random seed
   set.seed(102528)
-
-  # Parsing Data
-
-  ## Parsing ModelScores
 
   modelScores <- compute.model.scores(type = "gscore",
                                       gscoreLogPath,
                                       lovoalignLogPath,
                                       proq3listLocation,
                                       computeproq3)
-
-  ## Computing XlinkMirtTable from topolink logs
 
   optimumXlinkMirttable <- create.xlink.mirttable(
     prepare.topolink.logs(
@@ -41,8 +21,6 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   bestcstcol <- optimumXlinkMirttable[which(modelScores$`TM-Score` == max(modelScores$`TM-Score`)), ]
   bestcstlist <- colnames(bestcstcol)[bestcstcol == 1]
-
-  ## Computing optimumSimilarityTable from nxn alignments
 
   optimumSimilarityTable <- create.dissimilarity.matrix(mode = "similarity",
                                                         diagonal = 1,
@@ -96,9 +74,7 @@ select.constraints.CLI <- function(inputfile, outputfile) {
 
   }
 
-  restrictionScores <- attribute.crys.and.opt(restrictionScores, cryslistLocation, optlistLocation)
-
-write.csv(restrictionScores, file = './restrictionscores.csv')
+  restrictionScores <- attribute.crys.and.opt(restrictionScores, cryslistLocation, cryslistLocation)
 
   # Correlations and Charts
 
@@ -126,97 +102,20 @@ write.csv(restrictionScores, file = './restrictionscores.csv')
 
   ## Writing the constraint files
 
-  if ("freq" %in% indicator) {
-
     write.table(x = write.rosetta.constraints(freqlist, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-
-  }
-
-  if ("bestcst" %in% indicator) {
-
-    write.table(x = write.rosetta.constraints(bestcstlist, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-  }
-
-  if ("bis" %in% indicator) {
+                file = 'xl_freq', quote = FALSE, col.names = FALSE, row.names = FALSE)
 
     write.table(x = write.rosetta.constraints(bislist, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-
-  }
-
-  if ("rscore" %in% indicator) {
-
-    write.table(x = write.rosetta.constraints(rscorelist, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-
-  }
-
-  if ("biscore" %in% indicator) {
+                file = 'xl_bis', quote = FALSE, col.names = FALSE, row.names = FALSE)
 
     write.table(x = write.rosetta.constraints(biscorelist, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-  }
-
-  if ("biscore_native" %in% indicator) {
+                file = 'xl_biscre_consensus', quote = FALSE, col.names = FALSE, row.names = FALSE)
 
     write.table(x = write.rosetta.constraints(biscore_nativelist, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-  }
-
-  if ("biscore_best" %in% indicator) {
+                file = 'xl_biscore_native', quote = FALSE, col.names = FALSE, row.names = FALSE)
 
     write.table(x = write.rosetta.constraints(biscore_bestlist, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-  }
-
-  if ("biscore_regression" %in% indicator) {
-
-    write.table(x = write.rosetta.constraints(biscore_regressionlist, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-  }
-
-  if ("biscore_proq3" %in% indicator) {
-
-    write.table(x = write.rosetta.constraints(biscore_proq3list, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-  }
-
-  if ("biscore_proq3.TM" %in% indicator) {
+                file = 'xl_biscore_best', quote = FALSE, col.names = FALSE, row.names = FALSE)
 
     write.table(x = write.rosetta.constraints(biscore_proq3_TMlist, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-  }
-
-}
+                file = 'xl_biscore_proq3', quote = FALSE, col.names = FALSE, row.names = FALSE)
