@@ -12,7 +12,8 @@ LazyData: true
 Depends: R (>= 3.2.0)
 Imports:
     ltm,
-    grid
+    grid,
+    seqinr
 Suggests:
     ggplot2
 RoxygenNote: 6.0.1

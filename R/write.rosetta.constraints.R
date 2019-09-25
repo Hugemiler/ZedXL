@@ -1,5 +1,5 @@
 write.rosetta.constraints <- function(restrictionVector,
-                                      table.location,
+                                      table.location = NULL,
                                       mode = "xlff"){
 
   distanceTable <- read.table(table.location)

@@ -1,134 +1,166 @@
-select.constraints.CLI <- function(inputfile, outputfile) {
+select.constraints.CLI <- function(inputfile, outputfile = "xl") {
 
   source(inputfile)
 
   ###############
   # Script for the command-line selection methodology
-  # Feb 2019
+  # Sep 2019
   #
   # Guilherme Fahur Bottino
   ###############
 
-  # Initial Package Load and Environment Set
+  #####
+  #  0. Initial Package Load and Environment Set
+  #####
 
-  ## descriptive analysis
   require(ZedXL)
-
-  ## Set random seed
   set.seed(102528)
 
-  # Parsing Data
+  #####
+  #  1. Parsing input data
+  #####
 
-  ## Parsing ModelScores
+  ## 1.1 Model scores (alignment against crystallographix structure, G-score (optional) and ProQ3D-score (optional)).
 
-  modelScores <- compute.model.scores(type = "gscore",
-                                      gscoreLogPath,
-                                      lovoalignLogPath,
-                                      proq3listLocation,
-                                      computeproq3)
+  modelScores <- compute.model.scores(lovoalignLogPath,
+                                      computegscore = F,
+                                      computeproq3 = ("BISCORE_PROQ3D_TM" %in% indicator | "BISCORE_PROQ3D" %in% indicator))
 
-  ## Computing XlinkMirtTable from topolink logs
+  ## 1.2 Computing the binary N x M (Models x Constraints) Matrix.
 
   optimumXlinkMirttable <- create.xlink.mirttable(
     prepare.topolink.logs(
-      read.topolink.output(mode,
-                           loglistLocation,
+      read.topolink.output(loglistLocation,
                            topolinkLogsDirectory)
     )
   )
 
-  freqlist <- colnames(optimumXlinkMirttable)[order(-colSums(optimumXlinkMirttable))][1:nconst]
+  ### 1.2.1. Extracting the most frequent XLs before digestion.
 
-  bestcstcol <- optimumXlinkMirttable[which(modelScores$`TM-Score` == max(modelScores$`TM-Score`)), ]
-  bestcstlist <- colnames(bestcstcol)[bestcstcol == 1]
+  if ("FREQ" %in% indicator) {
 
-  ## Computing optimumSimilarityTable from nxn alignments
+    FREQ_constraintList <- colnames(optimumXlinkMirttable)[order(-colSums(optimumXlinkMirttable))][1:nconst]
 
-  optimumSimilarityTable <- create.dissimilarity.matrix(mode = "similarity",
-                                                        diagonal = 1,
-                                                        alignlistPath,
-                                                        compactlogPath,
-                                                        nmodels = nrow(optimumXlinkMirttable))
+  }
 
-  ## Appendind DavisConsensus to modelScores table
+  ### 1.2.2. Extracting the list of constraints from the best.
 
-  modelScores$davisconsensus <- imperialist.score(mode = 'consensus',
-                                                  models = rownames(optimumSimilarityTable),
-                                                  similarityTable = optimumSimilarityTable)
+  if ("BEST" %in% indicator) {
 
-  ## Digesting the optimumXlinkMirttable
+    bestcstcol <- optimumXlinkMirttable[which(modelScores$`TM-Score` == max(modelScores$`TM-Score`)), ]
+    BEST_constraintList <- colnames(bestcstcol)[bestcstcol == 1]
+
+  }
+
+  ## 1.3 Computing the similarity Matrix from the nxn alignments.
+
+  if ("BISCORE_BEST" %in% indicator | "BISCORE_CONSENSUS" %in% indicator) {
+    optimumSimilarityTable <- create.dissimilarity.matrix(mode = "similarity",
+                                                          diagonal = 1,
+                                                          alignlistPath,
+                                                          compactlogPath,
+                                                          nmodels = nrow(optimumXlinkMirttable))
+
+    ### 1.3.1 Appending Davis-QA-Consensus to modelScores table
+
+    modelScores$davisconsensus <- imperialist.score(mode = "consensus",
+                                                    models = rownames(optimumSimilarityTable),
+                                                    similarityTable = optimumSimilarityTable)
+
+  }
+
+  #####
+  #  2. Analyzing Data
+  #####
+
+  ###
+  ## 2.1 Digesting the optimumXlinkMirttable (removing 0% and 100% constraints because they don't have variance).
 
   optimumXlinkMirttable <- digest.xlink.mirttable(optimumXlinkMirttable)
 
-  ### Classical Analysis
+  ###
+  ## 2.2 Descriptive Statistics (employing LTM package's descript class object).
 
-  optimumDescript <- ltm::descript(optimumXlinkMirttable)
+  optimumDescript <- ltm::descript(optimumXlinkMirttable, chi.squared = F)
 
-  ## Computation of restrictionScores
-
-  globalCronbachAlpha <- optimumDescript$alpha[1]
-
-  ### Creating the RestrictionScores table
+  ###
+  ## 2.3 Initializing the restrictionScores data frame.
 
   restrictionScores <- data.frame(bis = optimumDescript$bisCorr,
-                                  right = optimumDescript$perc[,2],
-                                  logit = optimumDescript$perc[,3],
-                                  alpha = optimumDescript$alpha[-1],
-                                  deltaAlpha = optimumDescript$alpha[2:length(optimumDescript$alpha)] - globalCronbachAlpha)
+                                  freq = optimumDescript$perc[,2],
+                                  logit = optimumDescript$perc[,3])
 
-  restrictionScores$rscore <- restriction.differential.scores(type = "G-Score",
-                                                              optimumXlinkMirttable,
-                                                              modelScores)$rscore
+  ### 2.3.1. Listing the top BIS constraints
+  BIS_constraintList <- rownames(restrictionScores)[order(-restrictionScores$bis)][1:nconst]
 
-  restrictionScores$biscore <- -apply(optimumXlinkMirttable, 2, function(x) {
-    ltm::biserial.cor(optimumSimilarityTable[which(modelScores$davisconsensus == max(modelScores$davisconsensus)), ], x)})
+  ###
+  ## 2.4 Calculating additional scores, according to inputfile.
 
-  restrictionScores$biscore_best <- -apply(optimumXlinkMirttable, 2, function(x) {
-    ltm::biserial.cor(optimumSimilarityTable[which(modelScores$`TM-Score` == max(modelScores$`TM-Score`)), ], x)})
+  ### 2.4.1.
 
-  restrictionScores$biscore_native <- -apply(optimumXlinkMirttable, 2, function(x) {
-    ltm::biserial.cor(modelScores$`TM-Score`, x)})
+  if ("BISCORE_CONSENSUS" %in% indicator) {
+    restrictionScores$biscore_consensus <- -apply(optimumXlinkMirttable, 2, function(x) {
+      ltm::biserial.cor(optimumSimilarityTable[which(modelScores$davisconsensus == max(modelScores$davisconsensus)), ], x)})
 
-  if(computeproq3 == T) {
+    BISCORE_CONSENSUS_constraintList <- rownames(restrictionScores)[order(-restrictionScores$biscore_consensus)][1:nconst]
+  }
 
+  ### 2.4.2.
+
+  if ("BISCORE_BEST" %in% indicator) {
+    restrictionScores$biscore_best <- -apply(optimumXlinkMirttable, 2, function(x) {
+      ltm::biserial.cor(optimumSimilarityTable[which(modelScores$`TM-Score` == max(modelScores$`TM-Score`)), ], x)})
+
+    BISCORE_BEST_constraintList <- rownames(restrictionScores)[order(-restrictionScores$biscore_best)][1:nconst]
+  }
+
+  ### 2.4.3.
+
+  if ("BISCORE_CRYS" %in% indicator) {
+    restrictionScores$biscore_crys <- -apply(optimumXlinkMirttable, 2, function(x) {
+      ltm::biserial.cor(modelScores$`TM-Score`, x)})
+
+    BISCORE_CRYS_constraintList <- rownames(restrictionScores)[order(-restrictionScores$biscore_crys)][1:nconst]
+  }
+
+  ### 2.4.4.
+
+  if ("BISCORE_PROQ3D" %in% indicator) {
+    restrictionScores$biscore_proq3 <- -apply(optimumXlinkMirttable, 2, function(x) {
+      ltm::biserial.cor(optimumSimilarityTable[which(modelScores$ProQ3D == max(modelScores$ProQ3D)), ], x)})
+
+    BISCORE_PROQ3D_constraintList <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3)][1:nconst]
+  }
+
+  ### 2.4.5.
+
+  if ("BISCORE_PROQ3D_TM" %in% indicator) {
     restrictionScores$biscore_proq3.TM <- -apply(optimumXlinkMirttable, 2, function(x) {
       ltm::biserial.cor(optimumSimilarityTable[which(modelScores$ProQ3D.TM == max(modelScores$ProQ3D.TM)), ], x)})
 
+    BISCORE_PROQ3D_TM_constraintList <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3.TM)][1:nconst]
   }
+
+  ###
+  ## 2.5 Appending crystallographic constraint list, if available.
 
   restrictionScores <- attribute.crys.and.opt(restrictionScores, cryslistLocation, optlistLocation)
 
-write.csv(restrictionScores, file = './restrictionscores.csv')
+  ###
+  ## 2.6 Exporting constraint scores table (uncomment to export).
+  #
+  # write.csv(restrictionScores, file = './constraintScores.csv')
 
-  # Correlations and Charts
+  #####
+  #  3. Outputting constraint files
+  #####
 
-  ## Index Assignment
+  ##
+  # 3.1 Frequency
 
-  maxIndex <- which(modelScores$`TM-Score` == max(modelScores$`TM-Score`))
-  daviesIndex <- which(modelScores$`TM-Score` ==
-                         modelScores$`TM-Score`[which(modelScores$davisconsensus == max(modelScores$davisconsensus))])
+  if ("FREQ" %in% indicator) {
 
-  if(computeproq3 == T) {
-    proq3_TMIndex <- which(modelScores$ProQ3D.TM == max(modelScores$ProQ3D.TM))
-  }
-  # Protocol Termination
-
-  ## Building the constraint lists
-
-  bislist <- rownames(restrictionScores)[order(-restrictionScores$bis)][1:nconst]
-  rscorelist <- rownames(restrictionScores)[order(-restrictionScores$rscore)][1:nconst]
-  biscorelist <- rownames(restrictionScores)[order(-restrictionScores$biscore)][1:nconst]
-  biscore_nativelist <- rownames(restrictionScores)[order(-restrictionScores$biscore_native)][1:nconst]
-  biscore_bestlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_best)][1:nconst]
-  if(computeproq3 == T) {
-    biscore_proq3_TMlist <- rownames(restrictionScores)[order(-restrictionScores$biscore_proq3.TM)][1:nconst]
-  }
-
-  ## Writing the constraint files
-
-  if ("freq" %in% indicator) {
-
-    write.table(x = write.rosetta.constraints(freqlist, table.location = distanceTableLocation),
+    write.table(x = write.rosetta.constraints(FREQ_constraintList, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -136,18 +168,12 @@ write.csv(restrictionScores, file = './restrictionscores.csv')
 
   }
 
-  if ("bestcst" %in% indicator) {
+  ##
+  # 3.2 Constraints from the best model
 
-    write.table(x = write.rosetta.constraints(bestcstlist, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-  }
+  if ("BESTCST" %in% indicator) {
 
-  if ("bis" %in% indicator) {
-
-    write.table(x = write.rosetta.constraints(bislist, table.location = distanceTableLocation),
+    write.table(x = write.rosetta.constraints(BEST_constraintL, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -155,9 +181,12 @@ write.csv(restrictionScores, file = './restrictionscores.csv')
 
   }
 
-  if ("rscore" %in% indicator) {
+  ##
+  # 3.3 Point-biserial correlation of each constraint versus the total number of constraints per model
 
-    write.table(x = write.rosetta.constraints(rscorelist, table.location = distanceTableLocation),
+  if ("BISCORE_TOTALCST" %in% indicator) {
+
+    write.table(x = write.rosetta.constraints(BIS_constraintList, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
@@ -165,54 +194,60 @@ write.csv(restrictionScores, file = './restrictionscores.csv')
 
   }
 
-  if ("biscore" %in% indicator) {
+  ##
+  # 3.4 Point-biserial correlation of each constraint versus the alignment against the largest Davis Consensus score model
 
-    write.table(x = write.rosetta.constraints(biscorelist, table.location = distanceTableLocation),
+  if ("BISCORE_CONSENSUS" %in% indicator) {
+
+    write.table(x = write.rosetta.constraints(BISCORE_CONSENSUS_constraintList, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
                 row.names = FALSE)
   }
 
-  if ("biscore_native" %in% indicator) {
+  ##
+  # 3.5 Point-biserial correlation of each constraint versus the alignment against the crystallographic structure
 
-    write.table(x = write.rosetta.constraints(biscore_nativelist, table.location = distanceTableLocation),
+  if ("BISCORE_CRYS" %in% indicator) {
+
+    write.table(x = write.rosetta.constraints(BISCORE_CRYS_constraintList, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
                 row.names = FALSE)
   }
 
-  if ("biscore_best" %in% indicator) {
+  ##
+  # 3.6 Point-biserial correlation of each constraint versus the alignment against the model most similar to the crystallographic structure
 
-    write.table(x = write.rosetta.constraints(biscore_bestlist, table.location = distanceTableLocation),
+  if ("BISCORE_BEST" %in% indicator) {
+
+    write.table(x = write.rosetta.constraints(BISCORE_BEST_constraintList, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
                 row.names = FALSE)
   }
 
-  if ("biscore_regression" %in% indicator) {
+  ##
+  # 3.7 Point-biserial correlation of each constraint versus the alignment against the largest Proq3-sscore model
 
-    write.table(x = write.rosetta.constraints(biscore_regressionlist, table.location = distanceTableLocation),
+  if ("BISCORE_PROQ3" %in% indicator) {
+
+    write.table(x = write.rosetta.constraints(BISCORE_PROQ3_constraintList, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,
                 row.names = FALSE)
   }
 
-  if ("biscore_proq3" %in% indicator) {
+  ##
+  # 3.8 Point-biserial correlation of each constraint versus the alignment against the largest Proq3-TMscore model
 
-    write.table(x = write.rosetta.constraints(biscore_proq3list, table.location = distanceTableLocation),
-                file = outputfile,
-                quote = FALSE,
-                col.names = FALSE,
-                row.names = FALSE)
-  }
+  if ("BISCORE_PROQ3_TM" %in% indicator) {
 
-  if ("biscore_proq3.TM" %in% indicator) {
-
-    write.table(x = write.rosetta.constraints(biscore_proq3_TMlist, table.location = distanceTableLocation),
+    write.table(x = write.rosetta.constraints(BISCORE_PROQ3_TM_constraintList, table.location = distanceTableLocation),
                 file = outputfile,
                 quote = FALSE,
                 col.names = FALSE,

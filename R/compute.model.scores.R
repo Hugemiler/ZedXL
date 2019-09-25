@@ -1,12 +1,13 @@
-compute.model.scores <- function(type = "gscore",
-                                 gscoreLogPath,
-                                 lovoalignLogPath,
-                                 proq3listLocation,
-                                 computeproq3 = F){
+compute.model.scores <- function(lovoalignLogPath,
+                                 computegscore = F,
+                                 gscoretype = "gscore",
+                                 gscoreLogPath = "../gscore/gscore-TMscore-060.dat",
+                                 computeproq3 = F,
+                                 proq3listLocation = "../proq3list.txt"){
 
   ######
   #
-  # This script relies on data obtained by G-Score and Lovoalign Software.
+  # This function parses output files from lovoalign, G-Score and Proq3D Software.
   #
   # Lovoalign is open-source software. Whenever you use Lovoalign, please cite:
   #
@@ -23,9 +24,20 @@ compute.model.scores <- function(type = "gscore",
   #
   # Obtain G-Score software at http://leandro.iqm.unicamp.br/gscore/download.shtml
   #
+  # ProQ3D is open-source software. Whenever you use ProQ3, please cite:
+  #
+  # Karolis Uziela, David Menéndez Hurtado, Nanjiang Shu, Björn Wallner and Arne Elofsson,
+  # ProQ3D: Improved model quality assessments using Deep Learning.
+  # Bioinformatics. 2017 May 15;33(10):1578-1580
+  #
+  # Obtain ProQ3D software at http://proq3.bioinfo.se/pred/download/
+  #
   ######
 
   tmScoreTable <- read.table(lovoalignLogPath)
+
+  ##
+  # Computiong G-Score if
 
   gscoreTable <- read.table(gscoreLogPath)
 
