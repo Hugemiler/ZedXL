@@ -47,7 +47,7 @@ select.constraints.CLI <- function(inputfile, outputfile = "xl") {
 
   if ("BEST" %in% indicator) {
 
-    bestcstcol <- optimumXlinkMirttable[which(modelScores$`TM-Score` == max(modelScores$`TM-Score`)), ]
+    bestcstcol <- optimumXlinkMirttable[which(modelScores$tmscore == max(modelScores$tmscore)), ]
     BEST_constraintList <- colnames(bestcstcol)[bestcstcol == 1]
 
   }
@@ -109,7 +109,7 @@ select.constraints.CLI <- function(inputfile, outputfile = "xl") {
 
   if ("BISCORE_BEST" %in% indicator) {
     restrictionScores$biscore_best <- -apply(optimumXlinkMirttable, 2, function(x) {
-      ltm::biserial.cor(optimumSimilarityTable[which(modelScores$`TM-Score` == max(modelScores$`TM-Score`)), ], x)})
+      ltm::biserial.cor(optimumSimilarityTable[which(modelScores$tmscore == max(modelScores$tmscore)), ], x)})
 
     BISCORE_BEST_constraintList <- rownames(restrictionScores)[order(-restrictionScores$biscore_best)][1:nconst]
   }
@@ -118,7 +118,7 @@ select.constraints.CLI <- function(inputfile, outputfile = "xl") {
 
   if ("BISCORE_CRYS" %in% indicator) {
     restrictionScores$biscore_crys <- -apply(optimumXlinkMirttable, 2, function(x) {
-      ltm::biserial.cor(modelScores$`TM-Score`, x)})
+      ltm::biserial.cor(modelScores$tmscore, x)})
 
     BISCORE_CRYS_constraintList <- rownames(restrictionScores)[order(-restrictionScores$biscore_crys)][1:nconst]
   }

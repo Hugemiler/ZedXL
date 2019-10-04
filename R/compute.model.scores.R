@@ -34,42 +34,43 @@ compute.model.scores <- function(lovoalignLogPath,
   #
   ######
 
-  tmScoreTable <- read.table(lovoalignLogPath)
+  modelScores <- data.frame(tmscore = read.table(lovoalignLogPath)[,3])
 
   ##
   # Computiong G-Score if
 
-  gscoreTable <- read.table(gscoreLogPath)
+  if (computegscore == T) {
 
-  gscoreTable <- gscoreTable[order(gscoreTable$V4),]
+    gscoreTable <- read.table(gscoreLogPath)
 
-  if (type == "gscore") {
+    gscoreTable <- gscoreTable[order(gscoreTable$V4),]
 
-    modelScores <- data.frame(TMScore = tmScoreTable[,3],
-                              gscore = gscoreTable[,1])
+    if (type == "gscore") {
 
-    rownames(modelScores) <- gscoreTable$V4
-    colnames(modelScores) <- c("TM-Score", "G-Score")
+      modelScores <- cbind(modelScores,
+                           gscore = gscoreTable[,1])
 
-  }
+      rownames(modelScores) <- gscoreTable$V4
 
-  else if (type == "degree") {
+    }
 
-    modelScores <- data.frame(TMScore = tmScoreTable[,3],
-                              gscore = gscoreTable[,2])
+    else if (type == "degree") {
 
-    rownames(modelScores) <- gscoreTable$V4
-    colnames(modelScores) <- c("TM-Score", "degree")
+      modelScores <- cbind(modelScores,
+                           gscore = gscoreTable[,2])
 
-  }
+      rownames(modelScores) <- gscoreTable$V4
 
-  else if (type == "Wdegree") {
+    }
 
-    modelScores <- data.frame(TMScore = tmScoreTable[,3],
-                              gscore = gscoreTable[,3])
+    else if (type == "Wdegree") {
 
-    rownames(modelScores) <- gscoreTable$V4
-    colnames(modelScores) <- c("TM-Score", "Wdegree")
+      modelScores <- cbind(modelScores,
+                           gscore = gscoreTable[,3])
+
+      rownames(modelScores) <- gscoreTable$V4
+
+    }
 
   }
 
@@ -94,8 +95,7 @@ compute.model.scores <- function(lovoalignLogPath,
 
     ## Appending all modelScores computed
 
-    modelScores <- cbind(modelScores, proq3Table, tmscoreTable)
-    # modelScores <- cbind(modelScores, proq3Table)
+    modelScores <- cbind(modelScores, proq3Table)
 
   }
 
